@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{DEBF1B91-513C-495A-8D9E-5A2895399FFD}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>EditPersonalPerkStats</RootNamespace>
+    <AssemblyName>EditPersonalPerkStats</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\Dist</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\Dist</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>..\ModSDK\0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\ModSDK\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Phoenix Point\PhoenixPointWin64_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\ModSDK\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Core functionality files -->
+    <Compile Include="EPPS_Config.cs" />
+    <Compile Include="EPPS_Main.cs" />
+    <Compile Include="EPPS_Perks.cs" />
+    
+    <!-- Core patch files -->
+    <Compile Include="EPPS_StatCalculationPatch.cs" />
+    <Compile Include="EPPS_GeoscapeStatsPatch.cs" />
+    <Compile Include="EPPS_PerkRefreshPatch.cs" />
+    <Compile Include="EPPS_RowSetControllerPatch.cs" />
+    
+    <!-- UI and description handling -->
+    <Compile Include="EPPS_DefDescriptionUpdater.cs" />
+    <Compile Include="EPPS_TextGen.cs" />
+    
+    <!-- Assembly info -->
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Removed files (can be deleted):
+    EPPS_Bootstrap.cs - Replaced by simplified main class
+    EPPS_LateInit.cs - Complex polling system replaced by direct access
+    EPPS_DefDescriptionPatcher.cs - Unused, EPPS_DefDescriptionUpdater is used
+    EPPS_Main_Partial_Tweak.cs - Experimental code
+    EPPS_RepoUtil.cs - Overcomplicated repository finder
+    EPPS_Main.cs - Replaced by EPPS_Main_Refactored.cs
+    -->
+    <None Include="meta.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Content Include="..\Data\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>RMDIR /S /Q "%25USERPROFILE%25\AppData\LocalLow\Snapshot Games Inc\Phoenix Point\Steam\WorkshopTool\TestMod"
+MKDIR "%25USERPROFILE%25\AppData\LocalLow\Snapshot Games Inc\Phoenix Point\Steam\WorkshopTool\TestMod"
+XCOPY /Y /S /Q "$(SolutionDir)\Dist\*" "%25USERPROFILE%25\AppData\LocalLow\Snapshot Games Inc\Phoenix Point\Steam\WorkShopTool\TestMod"
+</PostBuildEvent>
+  </PropertyGroup>
+</Project>
