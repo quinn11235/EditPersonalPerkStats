@@ -4,10 +4,10 @@
   "Author": [
     {
       "Key": "English",
-      "Value": "Quinn11235"
+      "Value": "PP Modding Community"
     }
   ],
-  "Version": "1.0",
+  "Version": "3.0",
   "Name": [
     {
       "Key": "English",
@@ -17,7 +17,7 @@
   "Description": [
     {
       "Key": "English",
-      "Value": "Allows to edit the values of the Personal Perks."
+      "Value": "Comprehensive personal perk statistics customization with real-time configuration. Modify accuracy, damage, AP costs, and other perk attributes across all soldier classes. Features refactored codebase with improved performance, automatic VE description updates, and seamless UI integration. Configure Assault, Heavy, Sniper, and Technician perks with precision control."
     }
   ],
   "Dependencies": []
