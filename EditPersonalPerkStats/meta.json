@@ -1,5 +1,5 @@
 {
-  "ID": "com.quinn11235.EditPersonalPerkStats",
+  "ID": "com.phoenix.editpersonalperkstats",
   "AssemblyName": "EditPersonalPerkStats.dll",
   "Author": [
     {
@@ -7,17 +7,17 @@
       "Value": "PP Modding Community"
     }
   ],
-  "Version": "3.0",
+  "Version": "2.0",
   "Name": [
     {
       "Key": "English",
-      "Value": "Edit Personal Perk Stats"
+      "Value": "Edit Personal Perk Stats - Refactored"
     }
   ],
   "Description": [
     {
       "Key": "English",
-      "Value": "Comprehensive personal perk statistics customization with real-time configuration. Modify accuracy, damage, AP costs, and other perk attributes across all soldier classes. Features refactored codebase with improved performance, automatic VE description updates, and seamless UI integration. Configure Assault, Heavy, Sniper, and Technician perks with precision control."
+      "Value": "Simplified personal perk stat modification mod. Configure damage, accuracy, and attribute bonuses for personal perks. Real-time updates in Geoscape UI and tactical combat. Refactored from 14 files to 3 files while maintaining full functionality."
     }
   ],
   "Dependencies": []
