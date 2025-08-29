@@ -28,8 +28,10 @@
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <ItemGroup>
       <FilesToCopy Include="meta.json" />
+      <AssetsFiles Include="Assets\**\*" />
     </ItemGroup>
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(OutputPath)" />
+    <Copy SourceFiles="@(AssetsFiles)" DestinationFiles="@(AssetsFiles->'$(OutputPath)%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
 </Project>

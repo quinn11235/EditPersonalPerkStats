@@ -95,13 +95,13 @@ namespace EditPersonalPerkStats
             csvBuilder.AppendLine("Key;Type;Desc;English");
             csvBuilder.AppendLine($"EPPS_CLOSE_QUARTERS_DESC;Text;;Gain shotgun proficiency with +{shotgunAccuracyPercent}% accuracy, +{shotgunDamagePercent}% damage and melee weapon proficiency with +{meleeDamagePercent}% damage.");
             csvBuilder.AppendLine($"EPPS_STRONGMAN_DESC;Text;;Gain heavy weapons proficiency with +{heavyAccuracyPercent}% accuracy, +{heavyDamagePercent}% damage, -{perceptionPenalty} perception and +{strengthBonus} strength.");
-            csvBuilder.AppendLine($"EPPS_QUARTERBACK_DESC;Text;;Gain +{speedBonus} speed and increase grenade throwing range by +{rangePercent}%.");
-            csvBuilder.AppendLine($"EPPS_RESOURCEFUL_DESC;Text;;Gain +{resourcefulStrength} strength and increase carrying capacity by +{carryPercent}%.");
-            csvBuilder.AppendLine($"EPPS_SNIPERIST_DESC;Text;;Gain +{sniperistDamagePercent}% damage with sniper rifles but suffer -{willpowerPenalty} willpower.");
-            csvBuilder.AppendLine($"EPPS_TROOPER_DESC;Text;;Gain +{trooperAccuracyPercent}% accuracy and +{trooperDamagePercent}% damage with assault rifles.");
+            csvBuilder.AppendLine($"EPPS_QUARTERBACK_DESC;Text;;+{rangePercent}% bonus grenades range and +{speedBonus} speed.");
+            csvBuilder.AppendLine($"EPPS_RESOURCEFUL_DESC;Text;;+{carryPercent}% bonus carry weight and +{resourcefulStrength} strength.");
+            csvBuilder.AppendLine($"EPPS_SNIPERIST_DESC;Text;;Gain sniper rifle proficiency with +{sniperistDamagePercent}% damage and -{willpowerPenalty} willpower.");
+            csvBuilder.AppendLine($"EPPS_TROOPER_DESC;Text;;Gain assault rifle proficiency with +{trooperDamagePercent}% damage and +{trooperAccuracyPercent}% accuracy.");
             csvBuilder.AppendLine($"EPPS_RECKLESS_DESC;Text;;+{recklessDamagePercent}% bonus damage dealt and -{recklessAccuracyPenalty}% accuracy.");
-            csvBuilder.AppendLine($"EPPS_CAUTIOUS_DESC;Text;;Gain +{cautiousAccuracyPercent}% accuracy with all weapons but suffer -{cautiousDamageReduction}% damage reduction.");
-            csvBuilder.AppendLine($"EPPS_THIEF_DESC;Text;;Gain +{thiefSpeed} speed and +{thiefStealthPercent}% stealth bonus.");
+            csvBuilder.AppendLine($"EPPS_CAUTIOUS_DESC;Text;;+{cautiousAccuracyPercent}% bonus accuracy and -{cautiousDamageReduction}% damage dealt.");
+            csvBuilder.AppendLine($"EPPS_THIEF_DESC;Text;;+{thiefStealthPercent}% bonus stealth and +{thiefSpeed} speed.");
             csvBuilder.AppendLine($"EPPS_FARSIGHTED_DESC;Text;;Additional +{farsightedWillpower} to willpower and +{farsightedPerception} perception.");
             csvBuilder.AppendLine($"EPPS_HEALER_DESC;Text;;+{healerHealPercent}% bonus healing and +{healerWillpower} willpower.");
             csvBuilder.AppendLine($"EPPS_SELFDEFENSE_DESC;Text;;Gain PDW and handgun proficiency with +{selfDefensePDWDamage}% damage, +{selfDefensePistolAccuracy}% accuracy and +{selfDefenseHearing} tiles hearing range.");
@@ -209,15 +209,15 @@ namespace EditPersonalPerkStats
                 thief.ViewElementDef.Description = new Base.UI.LocalizedTextBind("EPPS_THIEF_DESC");
             }
 
-            // Update Farsighted  
-            var farsighted = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("Farsighted_AbilityDef"));
+            // Update Farsighted (Brainiac)
+            var farsighted = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("Brainiac_AbilityDef"));
             if (farsighted?.ViewElementDef?.Description != null)
             {
                 farsighted.ViewElementDef.Description = new Base.UI.LocalizedTextBind("EPPS_FARSIGHTED_DESC");
             }
 
-            // Update Healer
-            var healer = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("Healer_AbilityDef"));
+            // Update Healer (Helpful)
+            var healer = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("Helpful_AbilityDef"));
             if (healer?.ViewElementDef?.Description != null)
             {
                 healer.ViewElementDef.Description = new Base.UI.LocalizedTextBind("EPPS_HEALER_DESC");
@@ -230,15 +230,15 @@ namespace EditPersonalPerkStats
                 selfDefense.ViewElementDef.Description = new Base.UI.LocalizedTextBind("EPPS_SELFDEFENSE_DESC");
             }
 
-            // Update Bombardier
-            var bombardier = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("Bombardier_AbilityDef"));
+            // Update Bombardier (Crafty)
+            var bombardier = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("Crafty_AbilityDef"));
             if (bombardier?.ViewElementDef?.Description != null)
             {
                 bombardier.ViewElementDef.Description = new Base.UI.LocalizedTextBind("EPPS_BOMBARDIER_DESC");
             }
 
             // Update Biochemist
-            var biochemist = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("Biochemist_AbilityDef"));
+            var biochemist = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("BioChemist_AbilityDef"));
             if (biochemist?.ViewElementDef?.Description != null)
             {
                 biochemist.ViewElementDef.Description = new Base.UI.LocalizedTextBind("EPPS_BIOCHEMIST_DESC");

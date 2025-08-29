@@ -7,17 +7,17 @@
       "Value": "PP Modding Community"
     }
   ],
-  "Version": "2.0",
+  "Version": "2.1",
   "Name": [
     {
       "Key": "English",
-      "Value": "Edit Personal Perk Stats - Refactored"
+      "Value": "Edit Personal Perk Stats"
     }
   ],
   "Description": [
     {
       "Key": "English",
-      "Value": "Simplified personal perk stat modification mod. Configure damage, accuracy, and attribute bonuses for personal perks. Real-time updates in Geoscape UI and tactical combat. Refactored from 14 files to 3 files while maintaining full functionality."
+      "Value": "Configure damage, accuracy, and attribute bonuses for personal perks. Dynamic description updates and real-time configuration changes. Clean, simplified implementation with proper description synchronization."
     }
   ],
   "Dependencies": []

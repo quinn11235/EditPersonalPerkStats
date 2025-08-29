@@ -1,10 +1,15 @@
 Key;Type;Desc;English
 EPPS_CLOSE_QUARTERS_DESC;Text;;Gain shotgun proficiency with +20% accuracy, +10% damage and melee weapon proficiency with +20% damage.
 EPPS_STRONGMAN_DESC;Text;;Gain heavy weapons proficiency with +20% accuracy, +10% damage, -5 perception and +2 strength.
-EPPS_QUARTERBACK_DESC;Text;;Gain +2 speed and increase grenade throwing range by +25%.
-EPPS_RESOURCEFUL_DESC;Text;;Gain +2 strength and increase carrying capacity by +25%.
-EPPS_SNIPERIST_DESC;Text;;Gain +25% damage with sniper rifles but suffer -4 willpower.
-EPPS_TROOPER_DESC;Text;;Gain +20% accuracy and +10% damage with assault rifles.
-EPPS_RECKLESS_DESC;Text;;+15% bonus damage dealt and -5% accuracy.
-EPPS_CAUTIOUS_DESC;Text;;Gain +20% accuracy with all weapons but suffer -10% damage reduction.
-EPPS_THIEF_DESC;Text;;Gain +1 speed and +25% stealth bonus.
+EPPS_QUARTERBACK_DESC;Text;;+25% bonus grenades range and +2 speed.
+EPPS_RESOURCEFUL_DESC;Text;;+25% bonus carry weight and +2 strength.
+EPPS_SNIPERIST_DESC;Text;;Gain sniper rifle proficiency with +25% damage and -4 willpower.
+EPPS_TROOPER_DESC;Text;;Gain assault rifle proficiency with +10% damage and +20% accuracy.
+EPPS_RECKLESS_DESC;Text;;+10% bonus damage dealt and -5% accuracy.
+EPPS_CAUTIOUS_DESC;Text;;+20% bonus accuracy and -10% damage dealt.
+EPPS_THIEF_DESC;Text;;+25% bonus stealth and +1 speed.
+EPPS_FARSIGHTED_DESC;Text;;Additional +2 to willpower and +10 perception.
+EPPS_HEALER_DESC;Text;;+30% bonus healing and +2 willpower.
+EPPS_SELFDEFENSE_DESC;Text;;Gain PDW and handgun proficiency with +10% damage, +20% accuracy and +10 tiles hearing range.
+EPPS_BOMBARDIER_DESC;Text;;Gain mounted weapon proficiency with +20% range and +10% damage.
+EPPS_BIOCHEMIST_DESC;Text;;All attacks that damage a target also inflict 1 Virus Damage virus damage (per bullet).

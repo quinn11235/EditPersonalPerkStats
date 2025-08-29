@@ -442,51 +442,56 @@ namespace EditPersonalPerkStats
             var closeQuarters = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("CloseQuartersSpecialist_AbilityDef"));
             if (closeQuarters == null) return;
 
-            // Configure melee and shotgun bonuses - ADD shotgun damage bonus
-            var meleeTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Contains("MeleeWeapon") || tag.name.Contains("Melee"));
-            var shotgunTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Contains("Shotgun"));
+            // IMPORTANT: Don't completely replace ItemTagStatModifications - this breaks weapon proficiencies!
+            // Instead, find and update existing entries or add new ones while preserving proficiency structure
+            var meleeTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Equals("MeleeWeapon_TagDef"));
+            var shotgunTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Equals("ShotgunItem_TagDef"));
 
-            var itemTagMods = new System.Collections.Generic.List<EquipmentItemTagStatModification>();
-
-            if (meleeTagDef != null)
+            if (closeQuarters.ItemTagStatModifications != null && closeQuarters.ItemTagStatModifications.Length > 0)
             {
-                itemTagMods.Add(new EquipmentItemTagStatModification()
+                // Update existing melee weapon modification (preserve proficiency)
+                var meleeModification = closeQuarters.ItemTagStatModifications
+                    .FirstOrDefault(mod => mod.ItemTag == meleeTagDef);
+                if (meleeModification != null)
                 {
-                    ItemTag = meleeTagDef,
-                    EquipmentStatModification = new ItemStatModification()
-                    {
-                        TargetStat = StatModificationTarget.BonusAttackDamage,
-                        Modification = StatModificationType.Multiply,
-                        Value = config.CloseQuartersMelee
-                    }
-                });
-            }
+                    meleeModification.EquipmentStatModification.Value = config.CloseQuartersMelee;
+                }
 
-            if (shotgunTagDef != null)
-            {
-                itemTagMods.Add(new EquipmentItemTagStatModification()
+                // Update existing shotgun accuracy modification (preserve proficiency)
+                var shotgunModification = closeQuarters.ItemTagStatModifications
+                    .FirstOrDefault(mod => mod.ItemTag == shotgunTagDef && 
+                                         mod.EquipmentStatModification.TargetStat == StatModificationTarget.Accuracy);
+                if (shotgunModification != null)
                 {
-                    ItemTag = shotgunTagDef,
-                    EquipmentStatModification = new ItemStatModification()
-                    {
-                        TargetStat = StatModificationTarget.Accuracy,
-                        Modification = StatModificationType.Add,
-                        Value = config.CloseQuartersShotgun
-                    }
-                });
-                itemTagMods.Add(new EquipmentItemTagStatModification()
-                {
-                    ItemTag = shotgunTagDef,
-                    EquipmentStatModification = new ItemStatModification()
-                    {
-                        TargetStat = StatModificationTarget.BonusAttackDamage,
-                        Modification = StatModificationType.Multiply,
-                        Value = config.CloseQuartersShotgunDamage
-                    }
-                });
-            }
+                    shotgunModification.EquipmentStatModification.Value = config.CloseQuartersShotgun;
+                }
 
-            closeQuarters.ItemTagStatModifications = itemTagMods.ToArray();
+                // Add shotgun damage bonus if it doesn't exist (while preserving existing proficiencies)
+                var shotgunDamageModification = closeQuarters.ItemTagStatModifications
+                    .FirstOrDefault(mod => mod.ItemTag == shotgunTagDef && 
+                                         mod.EquipmentStatModification.TargetStat == StatModificationTarget.BonusAttackDamage);
+                
+                if (shotgunDamageModification == null && shotgunTagDef != null)
+                {
+                    // Add new shotgun damage bonus while preserving existing modifications
+                    var modsList = closeQuarters.ItemTagStatModifications.ToList();
+                    modsList.Add(new EquipmentItemTagStatModification()
+                    {
+                        ItemTag = shotgunTagDef,
+                        EquipmentStatModification = new ItemStatModification()
+                        {
+                            TargetStat = StatModificationTarget.BonusAttackDamage,
+                            Modification = StatModificationType.Multiply,
+                            Value = config.CloseQuartersShotgunDamage
+                        }
+                    });
+                    closeQuarters.ItemTagStatModifications = modsList.ToArray();
+                }
+                else if (shotgunDamageModification != null)
+                {
+                    shotgunDamageModification.EquipmentStatModification.Value = config.CloseQuartersShotgunDamage;
+                }
+            }
         }
 
         private static void ConfigureBiochemist(EditPersonalPerkStatsConfig config)

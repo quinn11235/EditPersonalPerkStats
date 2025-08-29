@@ -1,8 +1,6 @@
 using Base.Core;
 using Base.Defs;
-using HarmonyLib;
 using PhoenixPoint.Common.Core;
-using PhoenixPoint.Common.Game;
 using PhoenixPoint.Modding;
 using System;
 
@@ -20,15 +18,10 @@ namespace EditPersonalPerkStats
             
             try
             {
-                // Apply TFTV-style perk configurations (core functionality)
                 EditPersonalPerkStatsPerks.ApplyPerkConfigurations();
-                
-                // Update perk descriptions with configured values
                 EditPersonalPerkStatsDescriptions.UpdatePerkDescriptions();
                 
-                // Note: UI stat display should work automatically with TFTV approach
-                
-                Logger.LogInfo("[EditPersonalPerkStats] Hybrid implementation applied successfully");
+                Logger.LogInfo("[EditPersonalPerkStats] Personal perk configurations applied successfully");
             }
             catch (Exception e)
             {
@@ -40,16 +33,11 @@ namespace EditPersonalPerkStats
         {
             try
             {
-                // Reapply TFTV-style perk configurations
                 EditPersonalPerkStatsPerks.ApplyPerkConfigurations();
-                
-                // Update descriptions with new configured values immediately
                 EditPersonalPerkStatsDescriptions.UpdatePerkDescriptions();
-                
-                // Force UI refresh to show new descriptions without restart
                 ForceUIRefresh();
                 
-                Logger.LogInfo("[EditPersonalPerkStats] Configuration changes applied and UI refreshed");
+                Logger.LogInfo("[EditPersonalPerkStats] Configuration changes applied and descriptions updated");
             }
             catch (Exception e)
             {
@@ -61,9 +49,7 @@ namespace EditPersonalPerkStats
         {
             try
             {
-                // Force localization system to refresh all cached strings
                 I2.Loc.LocalizationManager.LocalizeAll(true);
-                
                 Logger.LogInfo("[EditPersonalPerkStats] Forced UI localization refresh");
             }
             catch (Exception e)
