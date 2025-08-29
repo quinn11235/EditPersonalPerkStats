@@ -205,10 +205,19 @@ namespace EditPersonalPerkStats
                 }
             };
 
-            // Configure sniper weapon damage bonus
-            if (sniperist.ItemTagStatModifications?.Length > 0)
+            // CRITICAL: Don't replace ItemTagStatModifications - update existing sniper rifle proficiency
+            var sniperTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Equals("SniperRifleItem_TagDef"));
+            
+            if (sniperist.ItemTagStatModifications != null && sniperTagDef != null)
             {
-                sniperist.ItemTagStatModifications[0].EquipmentStatModification.Value = config.SniperistDamage;
+                // Update existing sniper rifle damage modification (preserve proficiency)
+                var sniperDamageMod = sniperist.ItemTagStatModifications
+                    .FirstOrDefault(mod => mod.ItemTag == sniperTagDef && 
+                                         mod.EquipmentStatModification.TargetStat == StatModificationTarget.BonusAttackDamage);
+                if (sniperDamageMod != null)
+                {
+                    sniperDamageMod.EquipmentStatModification.Value = config.SniperistDamage;
+                }
             }
         }
 
@@ -240,23 +249,30 @@ namespace EditPersonalPerkStats
                 }
             };
 
-            // Configure heavy weapon bonuses - ADD heavy weapon damage bonus
-            var heavyTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Contains("HeavyWeapon") || tag.name.Contains("Heavy"));
-            if (heavyTagDef != null)
+            // CRITICAL: Don't replace ItemTagStatModifications - update existing heavy weapon proficiency
+            var heavyTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Equals("HeavyItem_TagDef"));
+            
+            if (strongman.ItemTagStatModifications != null && heavyTagDef != null)
             {
-                strongman.ItemTagStatModifications = new EquipmentItemTagStatModification[]
+                // Update existing heavy weapon accuracy modification (preserve proficiency)
+                var heavyAccuracyMod = strongman.ItemTagStatModifications
+                    .FirstOrDefault(mod => mod.ItemTag == heavyTagDef && 
+                                         mod.EquipmentStatModification.TargetStat == StatModificationTarget.Accuracy);
+                if (heavyAccuracyMod != null)
                 {
-                    new EquipmentItemTagStatModification()
-                    {
-                        ItemTag = heavyTagDef,
-                        EquipmentStatModification = new ItemStatModification()
-                        {
-                            TargetStat = StatModificationTarget.Accuracy,
-                            Modification = StatModificationType.Add,
-                            Value = config.StrongmanAccuracy
-                        }
-                    },
-                    new EquipmentItemTagStatModification()
+                    heavyAccuracyMod.EquipmentStatModification.Value = config.StrongmanAccuracy;
+                }
+
+                // Add heavy weapon damage bonus while preserving existing proficiencies
+                var heavyDamageMod = strongman.ItemTagStatModifications
+                    .FirstOrDefault(mod => mod.ItemTag == heavyTagDef && 
+                                         mod.EquipmentStatModification.TargetStat == StatModificationTarget.BonusAttackDamage);
+                
+                if (heavyDamageMod == null)
+                {
+                    // Add new damage bonus while preserving existing modifications
+                    var modsList = strongman.ItemTagStatModifications.ToList();
+                    modsList.Add(new EquipmentItemTagStatModification()
                     {
                         ItemTag = heavyTagDef,
                         EquipmentStatModification = new ItemStatModification()
@@ -265,8 +281,13 @@ namespace EditPersonalPerkStats
                             Modification = StatModificationType.Multiply,
                             Value = config.StrongmanDamage
                         }
-                    }
-                };
+                    });
+                    strongman.ItemTagStatModifications = modsList.ToArray();
+                }
+                else
+                {
+                    heavyDamageMod.EquipmentStatModification.Value = config.StrongmanDamage;
+                }
             }
         }
 
@@ -286,61 +307,90 @@ namespace EditPersonalPerkStats
                 }
             };
 
-            // Configure pistol and PDW bonuses
-            var pistolTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Contains("Handgun") || tag.name.Contains("Pistol"));
-            var pdwTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Contains("PDW") || tag.name.Contains("SMG"));
+            // CRITICAL: Don't replace ItemTagStatModifications - update existing handgun/PDW proficiencies
+            var pistolTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Equals("HandgunItem_TagDef"));
+            var pdwTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Equals("PDWItem_TagDef"));
             
-            var itemTagMods = new System.Collections.Generic.List<EquipmentItemTagStatModification>();
-
-            if (pistolTagDef != null)
+            if (selfDefense.ItemTagStatModifications != null)
             {
-                itemTagMods.Add(new EquipmentItemTagStatModification()
+                // Update pistol modifications (preserve proficiency)
+                if (pistolTagDef != null)
                 {
-                    ItemTag = pistolTagDef,
-                    EquipmentStatModification = new ItemStatModification()
+                    // Update existing pistol accuracy modification
+                    var pistolAccuracyMod = selfDefense.ItemTagStatModifications
+                        .FirstOrDefault(mod => mod.ItemTag == pistolTagDef && 
+                                             mod.EquipmentStatModification.TargetStat == StatModificationTarget.Accuracy);
+                    if (pistolAccuracyMod != null)
                     {
-                        TargetStat = StatModificationTarget.BonusAttackDamage,
-                        Modification = StatModificationType.Multiply,
-                        Value = config.SelfDefensePistolDamage
+                        pistolAccuracyMod.EquipmentStatModification.Value = config.SelfDefensePistolAccuracy;
                     }
-                });
-                itemTagMods.Add(new EquipmentItemTagStatModification()
-                {
-                    ItemTag = pistolTagDef,
-                    EquipmentStatModification = new ItemStatModification()
-                    {
-                        TargetStat = StatModificationTarget.Accuracy,
-                        Modification = StatModificationType.Add,
-                        Value = config.SelfDefensePistolAccuracy
-                    }
-                });
-            }
 
-            if (pdwTagDef != null)
-            {
-                itemTagMods.Add(new EquipmentItemTagStatModification()
-                {
-                    ItemTag = pdwTagDef,
-                    EquipmentStatModification = new ItemStatModification()
+                    // Add or update pistol damage bonus
+                    var pistolDamageMod = selfDefense.ItemTagStatModifications
+                        .FirstOrDefault(mod => mod.ItemTag == pistolTagDef && 
+                                             mod.EquipmentStatModification.TargetStat == StatModificationTarget.BonusAttackDamage);
+                    
+                    if (pistolDamageMod == null)
                     {
-                        TargetStat = StatModificationTarget.BonusAttackDamage,
-                        Modification = StatModificationType.Multiply,
-                        Value = config.SelfDefensePDWDamage
+                        // Add new damage bonus while preserving existing modifications
+                        var modsList = selfDefense.ItemTagStatModifications.ToList();
+                        modsList.Add(new EquipmentItemTagStatModification()
+                        {
+                            ItemTag = pistolTagDef,
+                            EquipmentStatModification = new ItemStatModification()
+                            {
+                                TargetStat = StatModificationTarget.BonusAttackDamage,
+                                Modification = StatModificationType.Multiply,
+                                Value = config.SelfDefensePistolDamage
+                            }
+                        });
+                        selfDefense.ItemTagStatModifications = modsList.ToArray();
                     }
-                });
-                itemTagMods.Add(new EquipmentItemTagStatModification()
-                {
-                    ItemTag = pdwTagDef,
-                    EquipmentStatModification = new ItemStatModification()
+                    else
                     {
-                        TargetStat = StatModificationTarget.Accuracy,
-                        Modification = StatModificationType.Add,
-                        Value = config.SelfDefensePDWAccuracy
+                        pistolDamageMod.EquipmentStatModification.Value = config.SelfDefensePistolDamage;
                     }
-                });
-            }
+                }
 
-            selfDefense.ItemTagStatModifications = itemTagMods.ToArray();
+                // Update PDW modifications (preserve proficiency)
+                if (pdwTagDef != null)
+                {
+                    // Update existing PDW accuracy modification
+                    var pdwAccuracyMod = selfDefense.ItemTagStatModifications
+                        .FirstOrDefault(mod => mod.ItemTag == pdwTagDef && 
+                                             mod.EquipmentStatModification.TargetStat == StatModificationTarget.Accuracy);
+                    if (pdwAccuracyMod != null)
+                    {
+                        pdwAccuracyMod.EquipmentStatModification.Value = config.SelfDefensePDWAccuracy;
+                    }
+
+                    // Add or update PDW damage bonus
+                    var pdwDamageMod = selfDefense.ItemTagStatModifications
+                        .FirstOrDefault(mod => mod.ItemTag == pdwTagDef && 
+                                             mod.EquipmentStatModification.TargetStat == StatModificationTarget.BonusAttackDamage);
+                    
+                    if (pdwDamageMod == null)
+                    {
+                        // Add new damage bonus while preserving existing modifications
+                        var modsList = selfDefense.ItemTagStatModifications.ToList();
+                        modsList.Add(new EquipmentItemTagStatModification()
+                        {
+                            ItemTag = pdwTagDef,
+                            EquipmentStatModification = new ItemStatModification()
+                            {
+                                TargetStat = StatModificationTarget.BonusAttackDamage,
+                                Modification = StatModificationType.Multiply,
+                                Value = config.SelfDefensePDWDamage
+                            }
+                        });
+                        selfDefense.ItemTagStatModifications = modsList.ToArray();
+                    }
+                    else
+                    {
+                        pdwDamageMod.EquipmentStatModification.Value = config.SelfDefensePDWDamage;
+                    }
+                }
+            }
         }
 
         private static void ConfigureReckless(EditPersonalPerkStatsConfig config)
@@ -394,23 +444,30 @@ namespace EditPersonalPerkStats
             var trooper = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("GoodShot_AbilityDef"));
             if (trooper == null) return;
 
-            // Configure assault rifle bonuses
-            var rifleTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Contains("AssaultRifle") || tag.name.Contains("Rifle"));
-            if (rifleTagDef != null)
+            // CRITICAL: Don't replace ItemTagStatModifications - update existing assault rifle proficiency
+            var rifleTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Equals("AssaultRifleItem_TagDef"));
+            
+            if (trooper.ItemTagStatModifications != null && rifleTagDef != null)
             {
-                trooper.ItemTagStatModifications = new EquipmentItemTagStatModification[]
+                // Update existing assault rifle accuracy modification (preserve proficiency)
+                var rifleAccuracyMod = trooper.ItemTagStatModifications
+                    .FirstOrDefault(mod => mod.ItemTag == rifleTagDef && 
+                                         mod.EquipmentStatModification.TargetStat == StatModificationTarget.Accuracy);
+                if (rifleAccuracyMod != null)
                 {
-                    new EquipmentItemTagStatModification()
-                    {
-                        ItemTag = rifleTagDef,
-                        EquipmentStatModification = new ItemStatModification()
-                        {
-                            TargetStat = StatModificationTarget.Accuracy,
-                            Modification = StatModificationType.Add,
-                            Value = config.TrooperAccuracy
-                        }
-                    },
-                    new EquipmentItemTagStatModification()
+                    rifleAccuracyMod.EquipmentStatModification.Value = config.TrooperAccuracy;
+                }
+
+                // Add assault rifle damage bonus while preserving existing proficiencies
+                var rifleDamageMod = trooper.ItemTagStatModifications
+                    .FirstOrDefault(mod => mod.ItemTag == rifleTagDef && 
+                                         mod.EquipmentStatModification.TargetStat == StatModificationTarget.BonusAttackDamage);
+                
+                if (rifleDamageMod == null)
+                {
+                    // Add new damage bonus while preserving existing modifications
+                    var modsList = trooper.ItemTagStatModifications.ToList();
+                    modsList.Add(new EquipmentItemTagStatModification()
                     {
                         ItemTag = rifleTagDef,
                         EquipmentStatModification = new ItemStatModification()
@@ -419,8 +476,13 @@ namespace EditPersonalPerkStats
                             Modification = StatModificationType.Multiply,
                             Value = config.TrooperDamage
                         }
-                    }
-                };
+                    });
+                    trooper.ItemTagStatModifications = modsList.ToArray();
+                }
+                else
+                {
+                    rifleDamageMod.EquipmentStatModification.Value = config.TrooperDamage;
+                }
             }
         }
 
@@ -429,11 +491,28 @@ namespace EditPersonalPerkStats
             var bombardier = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("Crafty_AbilityDef"));
             if (bombardier == null) return;
 
-            // Configure mounted weapon bonuses
-            if (bombardier.ItemTagStatModifications?.Length >= 2)
+            // CRITICAL: Don't replace ItemTagStatModifications - update existing mounted weapon proficiency
+            var mountedTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Equals("MountedWeaponItem_TagDef"));
+            
+            if (bombardier.ItemTagStatModifications != null && mountedTagDef != null)
             {
-                bombardier.ItemTagStatModifications[0].EquipmentStatModification.Value = config.BombardierDamage;
-                bombardier.ItemTagStatModifications[1].EquipmentStatModification.Value = config.BombardierRange;
+                // Update existing mounted weapon damage modification (preserve proficiency)
+                var mountedDamageMod = bombardier.ItemTagStatModifications
+                    .FirstOrDefault(mod => mod.ItemTag == mountedTagDef && 
+                                         mod.EquipmentStatModification.TargetStat == StatModificationTarget.BonusAttackDamage);
+                if (mountedDamageMod != null)
+                {
+                    mountedDamageMod.EquipmentStatModification.Value = config.BombardierDamage;
+                }
+
+                // Update existing mounted weapon range modification (preserve proficiency)
+                var mountedRangeMod = bombardier.ItemTagStatModifications
+                    .FirstOrDefault(mod => mod.ItemTag == mountedTagDef && 
+                                         mod.EquipmentStatModification.TargetStat == StatModificationTarget.BonusAttackRange);
+                if (mountedRangeMod != null)
+                {
+                    mountedRangeMod.EquipmentStatModification.Value = config.BombardierRange;
+                }
             }
         }
 
