@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Base.Defs;
 using Base.Entities.Statuses;
@@ -8,7 +9,7 @@ using PhoenixPoint.Tactical.Entities.Abilities;
 using PhoenixPoint.Tactical.Entities.DamageKeywords;
 using PhoenixPoint.Tactical.Entities.Equipments;
 using UnityEngine;
-namespace EditPersonalPerkStats
+namespace Quinn11235.EditPersonalPerkStats
 {
     internal static class EditPersonalPerkStatsPerks
     {
@@ -17,6 +18,8 @@ namespace EditPersonalPerkStats
         public static void ApplyPerkConfigurations()
         {
             var config = (EditPersonalPerkStatsConfig)EditPersonalPerkStatsMain.Instance.Config;
+            EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Config object: {config?.GetType()?.FullName ?? "NULL"}");
+            EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Config RecklessDamage default check: {config?.RecklessDamage ?? -999f}");
             ConfigureAllPerks(config);
         }
 
@@ -224,7 +227,13 @@ namespace EditPersonalPerkStats
         private static void ConfigureStrongman(EditPersonalPerkStatsConfig config)
         {
             var strongman = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("Strongman_AbilityDef"));
-            if (strongman == null) return;
+            if (strongman == null) 
+            {
+                EditPersonalPerkStatsMain.Instance.Logger.LogWarning("[EditPersonalPerkStats] Strongman_AbilityDef not found!");
+                return;
+            }
+
+            EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Configuring Strongman with damage multiplier: {config.StrongmanDamage}");
 
             // Create new StatModifications array for Perception penalty and Strength bonus
             strongman.StatModifications = new ItemStatModification[]
@@ -249,8 +258,36 @@ namespace EditPersonalPerkStats
                 }
             };
 
-            // CRITICAL: Don't replace ItemTagStatModifications - update existing heavy weapon proficiency
+            // Debug: Check what ItemTagStatModifications exist in base game
+            EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Strongman ItemTagStatModifications count: {strongman.ItemTagStatModifications?.Length ?? 0}");
+            if (strongman.ItemTagStatModifications != null)
+            {
+                for (int i = 0; i < strongman.ItemTagStatModifications.Length; i++)
+                {
+                    var mod = strongman.ItemTagStatModifications[i];
+                    EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] [{i}] Tag: {mod.ItemTag?.name}, Stat: {mod.EquipmentStatModification.TargetStat}, Modification: {mod.EquipmentStatModification.Modification}, Value: {mod.EquipmentStatModification.Value}");
+                }
+            }
+            
+            // Also check if there are already BonusAttackDamage modifications for heavy weapons  
             var heavyTagDef = Repo.GetAllDefs<GameTagDef>().FirstOrDefault(tag => tag.name.Equals("HeavyItem_TagDef"));
+            var existingHeavyDamageMods = strongman.ItemTagStatModifications
+                ?.Where(mod => mod.ItemTag == heavyTagDef && 
+                              mod.EquipmentStatModification.TargetStat == StatModificationTarget.BonusAttackDamage)
+                ?.ToList();
+            EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Existing heavy weapon damage mods: {existingHeavyDamageMods?.Count ?? 0}");
+            
+            // Log each damage mod in detail
+            if (existingHeavyDamageMods?.Count > 0)
+            {
+                for (int i = 0; i < existingHeavyDamageMods.Count; i++)
+                {
+                    var mod = existingHeavyDamageMods[i];
+                    EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Damage mod [{i}]: Value={mod.EquipmentStatModification.Value}, Modification={mod.EquipmentStatModification.Modification}");
+                }
+            }
+
+            // CRITICAL: Don't replace ItemTagStatModifications - update existing heavy weapon proficiency
             
             if (strongman.ItemTagStatModifications != null && heavyTagDef != null)
             {
@@ -263,14 +300,32 @@ namespace EditPersonalPerkStats
                     heavyAccuracyMod.EquipmentStatModification.Value = config.StrongmanAccuracy;
                 }
 
-                // Add heavy weapon damage bonus while preserving existing proficiencies
-                var heavyDamageMod = strongman.ItemTagStatModifications
-                    .FirstOrDefault(mod => mod.ItemTag == heavyTagDef && 
-                                         mod.EquipmentStatModification.TargetStat == StatModificationTarget.BonusAttackDamage);
+                // Check if we already have damage bonuses from previous runs - if so, just update the first one
+                var existingDamageBonuses = strongman.ItemTagStatModifications
+                    .Where(mod => mod.ItemTag == heavyTagDef && 
+                                mod.EquipmentStatModification.TargetStat == StatModificationTarget.BonusAttackDamage)
+                    .ToList();
                 
-                if (heavyDamageMod == null)
+                if (existingDamageBonuses.Count > 0)
                 {
-                    // Add new damage bonus while preserving existing modifications
+                    // Update the first existing bonus and remove any duplicates
+                    var firstBonus = existingDamageBonuses[0];
+                    firstBonus.EquipmentStatModification.Value = config.StrongmanDamage;
+                    firstBonus.EquipmentStatModification.Modification = StatModificationType.Multiply;
+                    
+                    // Remove duplicate bonuses
+                    var modsList = strongman.ItemTagStatModifications.ToList();
+                    for (int i = 1; i < existingDamageBonuses.Count; i++)
+                    {
+                        modsList.Remove(existingDamageBonuses[i]);
+                    }
+                    strongman.ItemTagStatModifications = modsList.ToArray();
+                    
+                    EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Updated existing damage bonus to {config.StrongmanDamage}, removed {existingDamageBonuses.Count - 1} duplicates");
+                }
+                else
+                {
+                    // No existing damage bonus, add one
                     var modsList = strongman.ItemTagStatModifications.ToList();
                     modsList.Add(new EquipmentItemTagStatModification()
                     {
@@ -283,11 +338,14 @@ namespace EditPersonalPerkStats
                         }
                     });
                     strongman.ItemTagStatModifications = modsList.ToArray();
+                    EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Added new damage bonus: {config.StrongmanDamage}");
                 }
-                else
-                {
-                    heavyDamageMod.EquipmentStatModification.Value = config.StrongmanDamage;
-                }
+                
+                EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Final ItemTagStatModifications count: {strongman.ItemTagStatModifications.Length}");
+            }
+            else
+            {
+                EditPersonalPerkStatsMain.Instance.Logger.LogWarning("[EditPersonalPerkStats] Strongman has no ItemTagStatModifications or heavy tag not found");
             }
         }
 
@@ -396,24 +454,40 @@ namespace EditPersonalPerkStats
         private static void ConfigureReckless(EditPersonalPerkStatsConfig config)
         {
             var reckless = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("Reckless_AbilityDef"));
-            if (reckless == null) return;
-
-            // Create new StatModifications array for general damage bonus and accuracy penalty
-            reckless.StatModifications = new ItemStatModification[]
+            if (reckless == null)
             {
-                new ItemStatModification()
+                EditPersonalPerkStatsMain.Instance.Logger.LogWarning("[EditPersonalPerkStats] Reckless_AbilityDef not found!");
+                return;
+            }
+
+            // CRITICAL DEBUG: Log the entire StatModifications array structure
+            if (reckless.StatModifications?.Length > 0)
+            {
+                EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Reckless StatModifications array has {reckless.StatModifications.Length} entries:");
+                for (int i = 0; i < reckless.StatModifications.Length; i++)
                 {
-                    TargetStat = StatModificationTarget.BonusAttackDamage,
-                    Modification = StatModificationType.Multiply,
-                    Value = config.RecklessDamage
-                },
-                new ItemStatModification()
-                {
-                    TargetStat = StatModificationTarget.Accuracy,
-                    Modification = StatModificationType.Add,
-                    Value = config.RecklessAccuracy // This should be negative
+                    var mod = reckless.StatModifications[i];
+                    EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats]   [{i}] TargetStat: {mod.TargetStat}, Type: {mod.Modification}, Value: {mod.Value}");
                 }
-            };
+            }
+
+            // CRITICAL DEBUG: Log config object and source
+            EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Config object type: {config.GetType().FullName}");
+            EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Config source: {EditPersonalPerkStatsMain.Instance.Config.GetType().FullName}");
+            EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Config values: RecklessDamage = {config.RecklessDamage}, RecklessAccuracy = {config.RecklessAccuracy}");
+
+            // CRITICAL: Use direct array access to modify existing StatModifications (like the working mod)
+            if (reckless.StatModifications?.Length >= 2)
+            {
+                reckless.StatModifications[0].Value = config.RecklessDamage;   // Damage multiplier
+                reckless.StatModifications[1].Value = config.RecklessAccuracy; // Accuracy penalty
+                
+                EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Applied: [{0}] = {config.RecklessDamage}, [{1}] = {config.RecklessAccuracy}");
+            }
+            else
+            {
+                EditPersonalPerkStatsMain.Instance.Logger.LogWarning($"[EditPersonalPerkStats] StatModifications array too short! Length = {reckless.StatModifications?.Length ?? 0}");
+            }
         }
 
         private static void ConfigureCautious(EditPersonalPerkStatsConfig config)
@@ -519,7 +593,14 @@ namespace EditPersonalPerkStats
         private static void ConfigureCloseQuarters(EditPersonalPerkStatsConfig config)
         {
             var closeQuarters = Repo.GetAllDefs<PassiveModifierAbilityDef>().FirstOrDefault(a => a.name.Equals("CloseQuartersSpecialist_AbilityDef"));
-            if (closeQuarters == null) return;
+            if (closeQuarters == null) 
+            {
+                EditPersonalPerkStatsMain.Instance.Logger.LogWarning("[EditPersonalPerkStats] CloseQuartersSpecialist_AbilityDef not found!");
+                return;
+            }
+
+            EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Configuring Close Quarters with shotgun damage multiplier: {config.CloseQuartersShotgunDamage}");
+
 
             // IMPORTANT: Don't completely replace ItemTagStatModifications - this breaks weapon proficiencies!
             // Instead, find and update existing entries or add new ones while preserving proficiency structure
@@ -545,14 +626,32 @@ namespace EditPersonalPerkStats
                     shotgunModification.EquipmentStatModification.Value = config.CloseQuartersShotgun;
                 }
 
-                // Add shotgun damage bonus if it doesn't exist (while preserving existing proficiencies)
-                var shotgunDamageModification = closeQuarters.ItemTagStatModifications
-                    .FirstOrDefault(mod => mod.ItemTag == shotgunTagDef && 
-                                         mod.EquipmentStatModification.TargetStat == StatModificationTarget.BonusAttackDamage);
+                // Check if we already have damage bonuses from previous runs - if so, just update the first one
+                var existingDamageBonuses = closeQuarters.ItemTagStatModifications
+                    .Where(mod => mod.ItemTag == shotgunTagDef && 
+                                mod.EquipmentStatModification.TargetStat == StatModificationTarget.BonusAttackDamage)
+                    .ToList();
                 
-                if (shotgunDamageModification == null && shotgunTagDef != null)
+                if (existingDamageBonuses.Count > 0)
                 {
-                    // Add new shotgun damage bonus while preserving existing modifications
+                    // Update the first existing bonus and remove any duplicates
+                    var firstBonus = existingDamageBonuses[0];
+                    firstBonus.EquipmentStatModification.Value = config.CloseQuartersShotgunDamage;
+                    firstBonus.EquipmentStatModification.Modification = StatModificationType.Multiply;
+                    
+                    // Remove duplicate bonuses
+                    var modsList = closeQuarters.ItemTagStatModifications.ToList();
+                    for (int i = 1; i < existingDamageBonuses.Count; i++)
+                    {
+                        modsList.Remove(existingDamageBonuses[i]);
+                    }
+                    closeQuarters.ItemTagStatModifications = modsList.ToArray();
+                    
+                    EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Updated existing shotgun damage bonus to {config.CloseQuartersShotgunDamage}, removed {existingDamageBonuses.Count - 1} duplicates");
+                }
+                else
+                {
+                    // No existing damage bonus, add one
                     var modsList = closeQuarters.ItemTagStatModifications.ToList();
                     modsList.Add(new EquipmentItemTagStatModification()
                     {
@@ -565,10 +664,7 @@ namespace EditPersonalPerkStats
                         }
                     });
                     closeQuarters.ItemTagStatModifications = modsList.ToArray();
-                }
-                else if (shotgunDamageModification != null)
-                {
-                    shotgunDamageModification.EquipmentStatModification.Value = config.CloseQuartersShotgunDamage;
+                    EditPersonalPerkStatsMain.Instance.Logger.LogInfo($"[EditPersonalPerkStats] Added new shotgun damage bonus: {config.CloseQuartersShotgunDamage}");
                 }
             }
         }

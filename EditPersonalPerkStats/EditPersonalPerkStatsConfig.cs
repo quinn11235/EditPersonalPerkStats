@@ -1,6 +1,6 @@
 using PhoenixPoint.Modding;
 
-namespace EditPersonalPerkStats
+namespace Quinn11235.EditPersonalPerkStats
 {
     public class EditPersonalPerkStatsConfig : ModConfig
     {
@@ -60,8 +60,8 @@ namespace EditPersonalPerkStats
         public float QuarterbackRange = 1.25f;
 
         // Reckless
-        [ConfigField("Reckless Damage Multiplier", "Damage multiplier (1.1 = 10% increase)")]
-        public float RecklessDamage = 1.1f;
+        [ConfigField("Reckless Damage Multiplier", "Damage multiplier (1.15 = 15% increase, base game is 1.1)")]
+        public float RecklessDamage = 1.15f;
         
         [ConfigField("Reckless Accuracy Penalty", "Accuracy penalty (-0.05 = -5%)")]
         public float RecklessAccuracy = -0.05f;

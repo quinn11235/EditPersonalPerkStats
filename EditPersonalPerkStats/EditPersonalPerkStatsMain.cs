@@ -2,9 +2,10 @@ using Base.Core;
 using Base.Defs;
 using PhoenixPoint.Common.Core;
 using PhoenixPoint.Modding;
+using HarmonyLib;
 using System;
 
-namespace EditPersonalPerkStats
+namespace Quinn11235.EditPersonalPerkStats
 {
     public class EditPersonalPerkStatsMain : ModMain
     {
@@ -42,6 +43,20 @@ namespace EditPersonalPerkStats
             catch (Exception e)
             {
                 Logger.LogError($"[EditPersonalPerkStats] Failed to apply configuration changes: {e}");
+            }
+        }
+
+        public override void OnLevelStart(Base.Levels.Level level)
+        {
+            // Apply perk configurations when any level starts to ensure our values override other mods
+            try
+            {
+                EditPersonalPerkStatsPerks.ApplyPerkConfigurations();
+                Logger.LogInfo("[EditPersonalPerkStats] Re-applied perk configurations on level start");
+            }
+            catch (Exception e)
+            {
+                Logger.LogError($"[EditPersonalPerkStats] Failed to re-apply configurations on level start: {e}");
             }
         }
 

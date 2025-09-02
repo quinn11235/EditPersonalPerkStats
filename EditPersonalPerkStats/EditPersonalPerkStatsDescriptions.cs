@@ -4,7 +4,7 @@ using PhoenixPoint.Tactical.Entities.Abilities;
 using System.IO;
 using I2.Loc;
 
-namespace EditPersonalPerkStats
+namespace Quinn11235.EditPersonalPerkStats
 {
     internal static class EditPersonalPerkStatsDescriptions
     {
